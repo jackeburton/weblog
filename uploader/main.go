@@ -6,6 +6,7 @@ import (
 	"log"
 	"path/filepath"
 	"io/ioutil"
+	"io"
 	"strings"
 	//"html/template"
 )
@@ -15,10 +16,6 @@ type config_options struct{
 }
 
 func main() {
-	// this is only going to work if the server is running on my machine or I sync these files to somewhere
-	// I should sync the files to somewhere and go from there
-	
-
 	config := config_options{
 		obsidian_home_dir: "/Users/jackburton/Library/Mobile Documents/iCloud~md~obsidian/Documents/home/Home",
 		weblog_tag: "postable-weblog-entry",
@@ -32,8 +29,51 @@ func main() {
 	for _, file := range files_to_upload {
 		fmt.Printf("%+v\n", file)
 	}
-	//refreshes the aws s3 instance where my blog files are hosted
-	// upload_files()
+	destination_path := "../server/markdown"
+	upload_files(destination_path, files_to_upload, config)
+}
+
+func upload_files(destination_path string, files []os.DirEntry, config config_options) {
+	files_to_delete, err := os.ReadDir(destination_path)
+	if err != nil {
+		log.Fatalf("Failed to read dir to delete files in %s", destination_path)
+	}
+	for _, file_to_delete := range files_to_delete{
+		file_to_delete_path := destination_path + "/" + file_to_delete.Name()
+		err := os.Remove(file_to_delete_path)
+		if err != nil {
+			log.Fatalf("Failed to delete file %s", file_to_delete)
+		}
+	}
+
+	for _, file := range files {
+		source_path := config.obsidian_home_dir + "/" + file.Name()
+		err := copyFile(source_path, destination_path + "/" + file.Name())
+		if err != nil {
+			log.Fatalf("Failed to copy %s to %s: %v", source_path, destination_path, err)
+		}
+	}
+}
+
+func copyFile(src, dst string) error {
+	sourceFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer sourceFile.Close()
+
+	destFile, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+
+	_, err = io.Copy(destFile, sourceFile)
+	if err != nil {
+		return err
+	}
+
+	return destFile.Close()
 }
 
 func get_files_to_upload(config config_options) []os.DirEntry{
