@@ -1,7 +1,6 @@
-weblog /ˈwɛblɒɡ/ -> web-log, log /lɒɡ/ *"an official record of events during the voyage of a ship or aircraft."*
+Server /ˈsəːvə/ *"a computer or computer program which manages access to a centralized resource or service in a network."*
 
-server -> serves blog on amazon EC2 via markdown files stored on amazon s3.
+resource -> Markdown files created via [obsidian](https://obsidian.md/)
+network -> The Internet
 
-uploader -> takes files from obsidian directory and uploads to amazon s3.
-
-image-gen -> wip.
+Via golang and HTMX
